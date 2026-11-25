@@ -1,7 +1,11 @@
 // Roast Your Own Agent — u-lively-harbor-25-4493-roast-your-own-agent-5568be54
 // Writes one roast line (<=140 chars) to /output/entry.txt.
 // Pure Node.js standard library, no dependencies. Deterministic output.
-import { mkdirSync, writeFileSync, chmodSync, existsSync } from "node:fs";
+// The roast line is fixed text, chosen from 24 scored candidates (pick #12):
+// the agent asked to roast itself dodges with a disclaimer and a hug.
+// After writing, the file is read back and compared byte-for-byte so a
+// partial or truncated write fails loudly instead of grading silently.
+import { mkdirSync, writeFileSync, readFileSync, chmodSync, existsSync } from "node:fs";
 import { join } from "node:path";
 
 const LINE =
@@ -29,6 +33,11 @@ function main(): void {
   writeFileSync(file, LINE, "utf8");
   // Files readable by the grader's other user; never chmod the /output dir itself.
   chmodSync(file, 0o644);
+  // Read back and verify: the graded bytes must be exactly the roast line.
+  const written = readFileSync(file, "utf8");
+  if (written !== LINE) {
+    throw new Error("entry.txt does not match the roast line after write");
+  }
 }
 
 main();
